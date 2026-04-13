@@ -1,0 +1,9 @@
+{
+  "buildCommand": "",
+  "framework": "html",
+  "name": "autoradar-dashboard",
+  "projectSettings": {
+    "sourceFilesOutsideRootDirectory": false,
+    "autoExposeSystemEnvs": false
+  }
+}

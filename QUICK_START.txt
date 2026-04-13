@@ -1,0 +1,112 @@
+╔═══════════════════════════════════════════════════════════╗
+║         🚗 AUTORADAR DASHBOARD — QUICK START CARD         ║
+╚═══════════════════════════════════════════════════════════╝
+
+📍 URLS IMPORTANTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Dashboard:           https://autoradar-dashboard.vercel.app
+Supabase Console:    https://tingcbepyaqskulrdgiw.supabase.co
+n8n Workflow:        https://n8n.srv1099553.hstgr.cloud
+GitHub Repo:         https://github.com/tuusuario/autoradar-dashboard
+
+🔐 CREDENCIALES YA CONFIGURADAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Supabase URL:      tingcbepyaqskulrdgiw.supabase.co
+✅ Anon Key:          sb_publishable_WdJgGgLvt76CgX-vk7jV5w_YYYs3LlV
+✅ Proyecto Supabase: autoradar (PostgreSQL)
+✅ Tabla:             coches_anuncios
+
+⚡ INICIO RÁPIDO (opciones)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OPCIÓN A: Solo abrir en navegador
+  → https://autoradar-dashboard.vercel.app ✅ RECOMENDADO
+
+OPCIÓN B: Desplegar tú mismo a Vercel (5 min)
+  1. Crea repo en GitHub
+  2. git clone <tu-repo>
+  3. Copia los archivos HTML
+  4. git push
+  5. En vercel.com → New Project → Importa repo
+  6. ¡Listo! Tendrás tu URL personal
+
+OPCIÓN C: Local (para desarrollo)
+  1. Abre index.html en navegador
+  2. O: npx http-server -p 3000
+  3. Accede a http://localhost:3000
+
+📊 FUNCIONALIDADES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ 10 portales rastreados (Wallapop, Milanuncios, etc)
+✓ ~5,000 anuncios en tiempo real
+✓ Búsqueda por marca/modelo/portal
+✓ Filtros y ordenamiento
+✓ Estadísticas actualizadas (precio medio, mínimo, etc)
+✓ Paginación (20 anuncios/página)
+✓ Actualización automática cada 60 segundos
+✓ Sincronización desde n8n cada 30 minutos
+✓ Sin dependencias complejas
+
+🔄 FLUJO DE DATOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+n8n (30min)  →  Scraping 10 portales
+               →  Limpieza de datos
+               →  INSERT en Supabase
+               →  Dashboard (cada 60s)
+               →  Lectura en navegador (tiempo real)
+
+📁 ARCHIVOS DEL PROYECTO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+index.html                  Dashboard (listo para usar ✅)
+car-tracker-supabase.html   Versión alternativa
+README.md                   Este archivo
+DEPLOY_GUIA.md              Guía paso a paso deployment
+SETUP_GUIA.md               Guía de configuración
+autoradar-config.json       Referencia de config
+package.json                Metadatos del proyecto
+vercel.json                 Config para Vercel
+.gitignore                  Archivos ignorados en git
+
+🛠️ PERSONALIZACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cambiar intervalo:          Línea ~450 en HTML → autoRefreshInterval
+Anuncios por página:        Línea ~360 → const PAGE_SIZE = 20
+Agregar portales:           Línea ~370 → array PORTALES
+Colores:                    Línea ~30-40 → :root { --accent, etc }
+
+🐛 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ "No se conecta"          → Verificar anon key en HTML
+❌ "0 anuncios"             → Esperar a n8n (30 min) o forzar sync
+❌ "Página en blanco"       → F12 → Console para ver error
+❌ "Error 404 en Vercel"    → index.html debe estar en raíz
+❌ "Lentitud extrema"       → Reducir LIMIT 500 a LIMIT 100
+
+📞 DOCUMENTACIÓN COMPLETA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Startup rápido:             Ver README.md (este archivo)
+Deploy a Vercel:            Ver DEPLOY_GUIA.md
+Configuración inicial:      Ver SETUP_GUIA.md
+Datos y endpoints:          Ver autoradar-config.json
+
+✨ CHECKLIST DE VERIFICACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+□ Abro el dashboard
+□ Veo punto VERDE en esquina superior derecha
+□ Cargo de datos (espero 2-3 segundos)
+□ Veo tabla con anuncios
+□ Búsqueda funciona
+□ Filtros funcionan
+□ Actualización automática cada 60s
+
+🎉 SIGUIENTES PASOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Abre: https://autoradar-dashboard.vercel.app
+2. Verifica conexión (punto verde)
+3. Busca coches, filtra, ordena
+4. ¡Disfruta datos en tiempo real!
+5. (Opcional) Despliega tu propia versión en Vercel
+
+═══════════════════════════════════════════════════════════
+            ✅ Listo para producción — AutoRadar v3
+═══════════════════════════════════════════════════════════

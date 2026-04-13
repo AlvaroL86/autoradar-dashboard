@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoRadar — Rastreador de Precios (Supabase Live)</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: #2a2a38;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --accent3: #3b82f6;
+    --text: #f0f0f5;
+    --muted: #6b6b80;
+    --green: #22c55e;
+    --red: #ef4444;
+    --purple: #a855f7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 2rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+  }
+
+  .logo-text {
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.9rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  .status-dot.syncing { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: spin-pulse 1s infinite; }
+  .status-dot.idle { background: var(--muted); box-shadow: none; animation: none; }
+  .status-dot.error { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes spin-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.4)} }
+
+  .sync-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent);
+    color: #0a0a0f;
+    border: none;
+    padding: 0.55rem 1.2rem;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .sync-btn:hover { background: #d4eb2a; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(232,255,71,0.3); }
+  .sync-btn:active { transform: translateY(0); }
+  .sync-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .sync-btn .icon { font-size: 1rem; transition: transform 0.4s; }
+  .sync-btn.syncing .icon { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .sync-progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%;
+    transition: width 0.3s ease;
+    z-index: 200;
+  }
+
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--accent); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .stat-card:hover::before { opacity: 1; }
+
+  .stat-label {
+    font-size: 0.7rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .stat-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  .stat-sub.up { color: var(--green); }
+  .stat-sub.down { color: var(--red); }
+
+  .section-title {
+    font-size: 0.7rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .portals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .portal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    position: relative;
+  }
+
+  .portal-card:hover { border-color: var(--accent); background: var(--surface2); }
+  .portal-card.active { border-color: var(--accent); background: rgba(232,255,71,0.05); }
+
+  .portal-emoji { font-size: 1.5rem; margin-bottom: 0.3rem; }
+  .portal-name { font-size: 0.72rem; font-weight: 700; }
+  .portal-count {
+    font-size: 0.65rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  .controls-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-box:focus { border-color: var(--accent); }
+
+  .filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .filter-select:focus { border-color: var(--accent); }
+
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  .data-table th {
+    background: var(--surface2);
+    padding: 0.8rem 1rem;
+    text-align: left;
+    font-size: 0.65rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .data-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(42,42,56,0.5);
+    vertical-align: middle;
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover { background: rgba(232,255,71,0.03); }
+
+  .new-badge {
+    background: var(--accent);
+    color: #0a0a0f;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    margin-left: 0.4rem;
+  }
+
+  .portal-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+    font-size: 0.7rem;
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap;
+  }
+
+  .price-cell {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--accent);
+  }
+
+  .link-btn {
+    color: var(--accent3);
+    text-decoration: none;
+    font-size: 0.75rem;
+    transition: color 0.2s;
+  }
+
+  .link-btn:hover { color: var(--accent); }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .page-btns { display: flex; gap: 0.25rem; }
+
+  .page-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.3rem 0.7rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.72rem;
+    transition: all 0.15s;
+  }
+
+  .page-btn:hover, .page-btn.active { background: var(--accent); color: #0a0a0f; }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+
+  .loading {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  .toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 999;
+  }
+
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.8rem;
+    animation: slideUp 0.3s ease;
+  }
+
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.info { border-left: 3px solid var(--accent); }
+  .toast.error { border-left: 3px solid var(--red); }
+
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 768px) {
+    header { padding: 1rem; }
+    main { padding: 1rem; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="sync-progress-bar" id="progressBar"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🚗</div>
+    <div class="logo-text">Auto<span>Radar</span></div>
+  </div>
+  <div class="header-right">
+    <div class="status-badge">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Conectando...</span>
+    </div>
+    <button class="sync-btn" id="syncBtn" onclick="refreshData()">
+      <span class="icon">⟳</span>
+      Actualizar
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total anuncios</div>
+      <div class="stat-value" id="statTotal"><span class="loading"></span></div>
+      <div class="stat-sub" id="statNew">Cargando...</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Portales activos</div>
+      <div class="stat-value" id="statPortals"><span class="loading"></span></div>
+      <div class="stat-sub">de 10 rastreados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Precio medio</div>
+      <div class="stat-value" id="statAvg"><span class="loading"></span></div>
+      <div class="stat-sub">de todos los anuncios</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Más barato hoy</div>
+      <div class="stat-value" style="font-size:1.3rem" id="statMin"><span class="loading"></span></div>
+      <div class="stat-sub" id="statMinSub">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Última sync</div>
+      <div class="stat-value" style="font-size:1rem" id="statLastSync"><span class="loading"></span></div>
+      <div class="stat-sub" id="statDuration">—</div>
+    </div>
+  </div>
+
+  <div class="section-title">Portales rastreados</div>
+  <div class="portals-grid" id="portalsGrid"></div>
+
+  <div class="controls-bar">
+    <input type="text" class="search-box" placeholder="🔍 Buscar marca, modelo, portal..." id="searchInput" oninput="filterTable()">
+    <select class="filter-select" id="portalFilter" onchange="filterTable()">
+      <option value="">Todos los portales</option>
+    </select>
+    <select class="filter-select" id="sortSelect" onchange="filterTable()">
+      <option value="date">Más reciente</option>
+      <option value="price-asc">Precio ↑</option>
+      <option value="price-desc">Precio ↓</option>
+      <option value="km-asc">Km ↑</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Km</th>
+          <th>Año</th>
+          <th>Precio</th>
+          <th>Provincia</th>
+          <th>Portal</th>
+          <th>Detectado</th>
+          <th>Ver</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="8" style="text-align:center; padding:2rem;"><span class="loading"></span> Cargando datos...</td></tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <span id="pageInfo">Cargando...</span>
+      <div class="page-btns" id="pageBtns"></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+// ─────────────────────────────────────────────
+// CONFIG - REEMPLAZA CON TUS VALORES
+// ─────────────────────────────────────────────
+const SUPABASE_URL = 'https://tingcbepyaqskulrdgiw.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_WdJgGgLvt76CgX-vk7jV5w_YYYs3LlV'; // ✅ Configurado
+const PAGE_SIZE = 20;
+
+// ─────────────────────────────────────────────
+// PORTALES
+// ─────────────────────────────────────────────
+const PORTALES = [
+  { id: 'coches_net',    name: 'Coches.net',    emoji: '🔵' },
+  { id: 'wallapop',      name: 'Wallapop',      emoji: '🟠' },
+  { id: 'milanuncios',   name: 'Milanuncios',   emoji: '🟡' },
+  { id: 'autoscout24',   name: 'AutoScout24',   emoji: '🟢' },
+  { id: 'motor_es',      name: 'Motor.es',      emoji: '🔴' },
+  { id: 'vibbo',         name: 'Vibbo',         emoji: '🟣' },
+  { id: 'autocasion',    name: 'Autocasión',    emoji: '⚪' },
+  { id: 'km77',          name: 'km77',          emoji: '🔷' },
+  { id: 'cochesdeocasion', name: 'Coches Ocas.', emoji: '🟤' },
+  { id: 'flexicar',      name: 'Flexicar',      emoji: '🔸' },
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let supabase = null;
+let allCars = [];
+let filteredCars = [];
+let portalStats = {};
+let currentPage = 1;
+let isLoading = false;
+let autoRefreshInterval = null;
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+async function init() {
+  // Verificar que la anon key está configurada
+  if (SUPABASE_ANON_KEY === 'AQUI_VA_TU_ANON_KEY') {
+    showError('❌ Error: Debes configurar SUPABASE_ANON_KEY en el HTML (línea ~350)');
+    setStatus('Error de configuración', 'error');
+    return;
+  }
+
+  // Inicializar Supabase
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  setStatus('Conectando a Supabase...', 'syncing');
+  
+  // Cargar datos
+  await loadData();
+  
+  // Configurar auto-refresh cada 60 segundos
+  autoRefreshInterval = setInterval(() => {
+    if (!isLoading) loadData();
+  }, 60000);
+
+  renderPortals();
+  populatePortalFilter();
+  showToast('success', '✅ Conectado a Supabase');
+}
+
+// ─────────────────────────────────────────────
+// LOAD DATA
+// ─────────────────────────────────────────────
+async function loadData() {
+  if (isLoading) return;
+  isLoading = true;
+  setStatus('Sincronizando...', 'syncing');
+  const bar = document.getElementById('progressBar');
+  bar.style.width = '20%';
+
+  try {
+    // Cargar todos los anuncios
+    const { data, error } = await supabase
+      .from('coches_anuncios')
+      .select('*')
+      .order('fecha_sync', { ascending: false })
+      .limit(500);
+
+    if (error) throw error;
+
+    allCars = data.map(c => ({
+      id: c.id,
+      titulo: c.titulo,
+      km: c.km,
+      year: c.year,
+      precio: c.precio,
+      lugar: c.lugar,
+      portal: c.portal_id,
+      portalName: c.portal,
+      link: c.link,
+      fecha_sync: c.fecha_sync,
+      es_nuevo: c.es_nuevo,
+    }));
+
+    bar.style.width = '60%';
+
+    // Actualizar estadísticas
+    updatePortalStats();
+    updateStats();
+
+    bar.style.width = '100%';
+    setTimeout(() => { bar.style.width = '0%'; }, 600);
+
+    // Filtrar y mostrar
+    filterTable();
+    setStatus('En línea', 'online');
+    document.getElementById('statLastSync').textContent = getTimeAgo(new Date());
+    showToast('success', `✅ Datos actualizados — ${allCars.length} anuncios`);
+    addLog('success', `Cargados ${allCars.length} anuncios desde Supabase`);
+
+  } catch (err) {
+    console.error('Error cargando datos:', err);
+    setStatus('Error en sync', 'error');
+    showToast('error', `❌ Error: ${err.message}`);
+    addLog('error', `Error al cargar datos: ${err.message}`);
+  } finally {
+    isLoading = false;
+  }
+}
+
+async function refreshData() {
+  await loadData();
+}
+
+// ─────────────────────────────────────────────
+// UI UPDATES
+// ─────────────────────────────────────────────
+function setStatus(text, state) {
+  const dot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  statusText.textContent = text;
+  dot.className = `status-dot ${state}`;
+}
+
+function updatePortalStats() {
+  portalStats = {};
+  allCars.forEach(c => {
+    portalStats[c.portal] = (portalStats[c.portal] || 0) + 1;
+  });
+}
+
+function updateStats() {
+  const total = allCars.length;
+  const newToday = allCars.filter(c => c.es_nuevo).length;
+  const prices = allCars.filter(c => c.precio > 0).map(c => c.precio);
+  const avg = prices.length > 0 ? prices.reduce((a,b) => a+b, 0) / prices.length : 0;
+  const min = prices.length > 0 ? Math.min(...prices) : 0;
+  const minCar = allCars.find(c => c.precio === min);
+
+  document.getElementById('statTotal').textContent = total.toLocaleString('es-ES');
+  document.getElementById('statNew').textContent = `+${newToday} nuevos`;
+  document.getElementById('statPortals').textContent = Object.keys(portalStats).filter(p => portalStats[p] > 0).length;
+  document.getElementById('statAvg').textContent = formatPrice(avg);
+  document.getElementById('statMin').textContent = formatPrice(min);
+  document.getElementById('statMinSub').textContent = minCar ? `${minCar.titulo.substring(0,40)}...` : '—';
+}
+
+function renderPortals() {
+  const grid = document.getElementById('portalsGrid');
+  grid.innerHTML = PORTALES.map(p => {
+    const count = (portalStats[p.id] || 0);
+    return `
+      <div class="portal-card" onclick="filterByPortal('${p.id}')">
+        <div class="portal-emoji">${p.emoji}</div>
+        <div class="portal-name">${p.name}</div>
+        <div class="portal-count">${count.toLocaleString('es-ES')} anuncios</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function populatePortalFilter() {
+  const sel = document.getElementById('portalFilter');
+  sel.innerHTML = '<option value="">Todos los portales</option>';
+  PORTALES.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+}
+
+function filterByPortal(id) {
+  document.getElementById('portalFilter').value = id;
+  filterTable();
+}
+
+// ─────────────────────────────────────────────
+// FILTER & RENDER
+// ─────────────────────────────────────────────
+function filterTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const portalF = document.getElementById('portalFilter').value;
+  const sort = document.getElementById('sortSelect').value;
+
+  filteredCars = allCars.filter(c => {
+    const matchSearch = !search ||
+      c.titulo.toLowerCase().includes(search) ||
+      c.portalName.toLowerCase().includes(search) ||
+      (c.lugar && c.lugar.toLowerCase().includes(search));
+    const matchPortal = !portalF || c.portal === portalF;
+    return matchSearch && matchPortal;
+  });
+
+  // Sort
+  if (sort === 'price-asc') filteredCars.sort((a,b) => a.precio - b.precio);
+  else if (sort === 'price-desc') filteredCars.sort((a,b) => b.precio - a.precio);
+  else if (sort === 'km-asc') filteredCars.sort((a,b) => a.km - b.km);
+  else filteredCars.sort((a,b) => new Date(b.fecha_sync) - new Date(a.fecha_sync));
+
+  currentPage = 1;
+  renderTable();
+}
+
+function renderTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = filteredCars.slice(start, start + PAGE_SIZE);
+
+  const tbody = document.getElementById('tableBody');
+  if (filteredCars.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No se encontraron anuncios</div></div></td></tr>`;
+  } else {
+    tbody.innerHTML = page.map(c => {
+      const portal = PORTALES.find(p => p.id === c.portal);
+      const timeAgo = getTimeAgo(new Date(c.fecha_sync));
+      return `
+        <tr>
+          <td>
+            <strong>${c.titulo.substring(0,50)}</strong>
+            ${c.es_nuevo ? '<span class="new-badge">NUEVO</span>' : ''}
+          </td>
+          <td style="font-family:Space Mono,monospace">${c.km.toLocaleString('es-ES')} km</td>
+          <td style="font-family:Space Mono,monospace">${c.year}</td>
+          <td><span class="price-cell">${formatPrice(c.precio)}</span></td>
+          <td>${c.lugar || '—'}</td>
+          <td><span class="portal-pill">${portal?.emoji || ''} ${c.portalName}</span></td>
+          <td style="color:var(--muted); font-size:0.7rem">${timeAgo}</td>
+          <td><a href="${c.link}" target="_blank" class="link-btn">Ver →</a></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  renderPagination();
+}
+
+function renderPagination() {
+  const total = filteredCars.length;
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const start = (currentPage-1) * PAGE_SIZE + 1;
+  const end = Math.min(currentPage * PAGE_SIZE, total);
+
+  document.getElementById('pageInfo').textContent = `Mostrando ${start}–${end} de ${total.toLocaleString('es-ES')}`;
+
+  const btns = document.getElementById('pageBtns');
+  let html = '';
+  if (currentPage > 1) html += `<button class="page-btn" onclick="goPage(${currentPage-1})">‹</button>`;
+  for (let i = 1; i <= pages; i++) {
+    if (i === 1 || i === pages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+      html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    }
+  }
+  if (currentPage < pages) html += `<button class="page-btn" onclick="goPage(${currentPage+1})">›</button>`;
+  btns.innerHTML = html;
+}
+
+function goPage(p) {
+  currentPage = p;
+  renderTable();
+  window.scrollTo({top: 300, behavior:'smooth'});
+}
+
+// ─────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────
+function formatPrice(p) {
+  return '€' + Math.round(p).toLocaleString('es-ES');
+}
+
+function getTimeAgo(date) {
+  if (!date) return '—';
+  const diff = Date.now() - new Date(date).getTime();
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(m / 60);
+  const d = Math.floor(h / 24);
+  if (m < 1) return 'Ahora';
+  if (m < 60) return `${m}m`;
+  if (h < 24) return `${h}h`;
+  return `${d}d`;
+}
+
+function showToast(type, msg) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+function showError(msg) {
+  console.error(msg);
+  showToast('error', msg);
+}
+
+function addLog(type, msg) {
+  console.log(`[${type.toUpperCase()}] ${msg}`);
+}
+
+// ─────────────────────────────────────────────
+// START
+// ─────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
