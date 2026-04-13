@@ -1,0 +1,193 @@
+{
+  "proyecto": "AutoRadar v3 — Dashboard Supabase Live",
+  "version": "1.0",
+  "fecha": "2025-04-13",
+  
+  "supabase": {
+    "proyecto": "autoradar",
+    "url": "https://tingcbepyaqskulrdgiw.supabase.co",
+    "region": "West EU (Paris)",
+    "base_datos": "postgres",
+    "tabla_principal": "coches_anuncios",
+    "campos": [
+      { "nombre": "id", "tipo": "SERIAL", "pk": true },
+      { "nombre": "id_unico", "tipo": "VARCHAR(255)", "unique": true },
+      { "nombre": "portal_id", "tipo": "VARCHAR(50)" },
+      { "nombre": "portal", "tipo": "VARCHAR(100)" },
+      { "nombre": "titulo", "tipo": "VARCHAR(500)" },
+      { "nombre": "precio", "tipo": "DECIMAL(10,2)" },
+      { "nombre": "km", "tipo": "INTEGER" },
+      { "nombre": "year", "tipo": "VARCHAR(10)" },
+      { "nombre": "lugar", "tipo": "VARCHAR(200)" },
+      { "nombre": "link", "tipo": "TEXT" },
+      { "nombre": "fecha_sync", "tipo": "TIMESTAMP" },
+      { "nombre": "es_nuevo", "tipo": "BOOLEAN" },
+      { "nombre": "created_at", "tipo": "TIMESTAMP" }
+    ],
+    "credenciales": {
+      "url": "COPIAR DE SUPABASE SETTINGS > API",
+      "anon_key": "COPIAR DE SUPABASE SETTINGS > API > Publishable Keys",
+      "acceso": "Público (solo lectura con RLS)"
+    }
+  },
+
+  "n8n": {
+    "url": "https://n8n.srv1099553.hstgr.cloud",
+    "usuario": "soporte@fidelityfornet.es",
+    "contraseña": "dEcalogo86!",
+    "workflow": "AutoRadar v3 — Supabase",
+    "frecuencia": "Cada 30 minutos",
+    "disparadores": [
+      "Trigger automático: cada 30 min",
+      "Webhook manual: POST /autoradar-sync"
+    ],
+    "portales": 10,
+    "estado": "✅ Activo"
+  },
+
+  "dashboard": {
+    "archivo": "car-tracker-supabase.html",
+    "tamaño": "26 KB",
+    "librerias": [
+      "Supabase JS v2 (CDN)",
+      "Google Fonts (Syne, Space Mono)"
+    ],
+    "caracteristicas": [
+      "Conexión en tiempo real a Supabase",
+      "Auto-actualización cada 60 segundos",
+      "Búsqueda y filtrado en cliente",
+      "Paginación (20 anuncios por página)",
+      "Estadísticas en vivo",
+      "Interfaz dark mode",
+      "Responsive (mobile-friendly)"
+    ],
+    "velocidad": "< 1s carga inicial",
+    "actualizacion": "Automática cada 60s"
+  },
+
+  "portales_rastreados": [
+    { "id": "wallapop", "nombre": "Wallapop", "emoji": "🟠", "metodo": "JSON API", "estado": "✅" },
+    { "id": "milanuncios", "nombre": "Milanuncios", "emoji": "🟡", "metodo": "JSON API", "estado": "✅" },
+    { "id": "coches_net", "nombre": "Coches.net", "emoji": "🔵", "metodo": "HTML", "estado": "✅" },
+    { "id": "autoscout24", "nombre": "AutoScout24", "emoji": "🟢", "metodo": "HTML", "estado": "✅" },
+    { "id": "autocasion", "nombre": "Autocasión", "emoji": "⚪", "metodo": "HTML", "estado": "✅" },
+    { "id": "motor_es", "nombre": "Motor.es", "emoji": "🔴", "metodo": "HTML", "estado": "✅" },
+    { "id": "flexicar", "nombre": "Flexicar", "emoji": "🔸", "metodo": "HTML", "estado": "✅" },
+    { "id": "cochesdeocasion", "nombre": "Coches Ocas.", "emoji": "🟤", "metodo": "HTML", "estado": "✅" },
+    { "id": "km77", "nombre": "km77", "emoji": "🔷", "metodo": "HTML", "estado": "✅" },
+    { "id": "vibbo", "nombre": "Vibbo", "emoji": "🟣", "metodo": "HTML", "estado": "✅" }
+  ],
+
+  "instalacion": {
+    "paso_1": "Copiar anon_key de Supabase Settings > API",
+    "paso_2": "Reemplazar en car-tracker-supabase.html línea ~350",
+    "paso_3": "Descargar/abrir HTML en navegador",
+    "paso_4": "Verificar conexión (punto verde en header)",
+    "paso_5": "(Opcional) Subir a Vercel o GitHub Pages"
+  },
+
+  "ruta_completa_instalacion": "Ver archivo SETUP_GUIA.md",
+
+  "endpoints_supabase": {
+    "cargar_todos": "SELECT * FROM coches_anuncios ORDER BY fecha_sync DESC LIMIT 500",
+    "ultimo_sync": "SELECT MAX(fecha_sync) FROM coches_anuncios",
+    "estadisticas": "SELECT portal, COUNT(*), AVG(precio), MIN(precio), MAX(precio) FROM coches_anuncios GROUP BY portal",
+    "nuevos_hoy": "SELECT * FROM coches_anuncios WHERE DATE(fecha_sync) = CURRENT_DATE AND es_nuevo = true"
+  },
+
+  "politicas_rls": {
+    "estado": "Configurado",
+    "politica_lectura": "Allow public read (SELECT sin autenticación)",
+    "escritura": "No permitida desde dashboard",
+    "notas": "Solo n8n puede escribir (con credenciales de servicio)"
+  },
+
+  "integracion_n8n": {
+    "flujo_completo": [
+      "1. Trigger cada 30 min → Configuración de portales",
+      "2. Loop por 10 portales → Petición HTTP + extracción",
+      "3. Normalización → Validación de datos",
+      "4. Guardado → Supabase + Google Sheets",
+      "5. Email diario → 8:00 AM resumen ejecutivo"
+    ],
+    "datos_guardados_por_sync": "50-200 anuncios nuevos (depende de portales)",
+    "tiempo_sync_promedio": "3-7 minutos",
+    "reintentos": "Automáticos si falla"
+  },
+
+  "almacenamiento": {
+    "supabase_plan": "Free (500MB incluidos)",
+    "uso_estimado": "~50 MB/mes (18 meses de datos)",
+    "google_sheets": "Sin límite (plan free)",
+    "crecimiento": "Lineal, sin problemas previstos"
+  },
+
+  "monitoreo": {
+    "dashboard_status": "Indicador verde/amarillo/rojo en header",
+    "logs": "Console del navegador (F12)",
+    "n8n_logs": "En n8n.srv1099553.hstgr.cloud",
+    "alertas": "Email diario a soporte@fidelityfornet.es"
+  },
+
+  "personalizacion_recomendada": [
+    "Cambiar colores del logo (var --accent: #e8ff47)",
+    "Agregar más portales editando array PORTALES",
+    "Cambiar intervalo de actualización (60000 ms = 60 seg)",
+    "Ampliar campos mostrados en tabla",
+    "Agregar gráficos de tendencias de precios"
+  ],
+
+  "problemas_conocidos": [
+    {
+      "problema": "Error 'anon key not found'",
+      "causa": "No reemplazada la variable",
+      "solucion": "Ver SETUP_GUIA.md paso 2"
+    },
+    {
+      "problema": "Tabla vacía (0 anuncios)",
+      "causa": "n8n aún no ha sincronizado",
+      "solucion": "Esperar al próximo trigger o forzar en n8n"
+    },
+    {
+      "problema": "Lentitud al cargar",
+      "causa": "Base de datos con > 1000 registros",
+      "solucion": "Cambiar LIMIT 500 en la query de Supabase"
+    }
+  ],
+
+  "archivos_generados": {
+    "car-tracker-supabase.html": {
+      "tamaño": "26 KB",
+      "descripcion": "Dashboard principal conectado a Supabase",
+      "dependencias": "Supabase JS (CDN)",
+      "uso": "Abre en navegador"
+    },
+    "SETUP_GUIA.md": {
+      "tamaño": "7.6 KB",
+      "descripcion": "Guía paso a paso de instalación completa",
+      "secciones": 11,
+      "tiempo_lectura": "5-10 minutos"
+    },
+    "autoradar-config.json": {
+      "tamaño": "Este archivo",
+      "descripcion": "Referencia rápida de configuración",
+      "uso": "Consulta rápida durante instalación"
+    }
+  },
+
+  "proximos_pasos": [
+    "1. Copiar anon_key de Supabase",
+    "2. Actualizar car-tracker-supabase.html",
+    "3. Abrir en navegador y verificar conexión",
+    "4. (Opcional) Desplegar en Vercel/GitHub Pages",
+    "5. Compartir URL con tu equipo",
+    "6. Monitorear en n8n que los datos se sincronizan"
+  ],
+
+  "soporte": {
+    "documentacion": "SETUP_GUIA.md en este directorio",
+    "supabase_docs": "https://supabase.com/docs",
+    "n8n_docs": "https://docs.n8n.io",
+    "github_issues": "Reporta errores específicos"
+  }
+}

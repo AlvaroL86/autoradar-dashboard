@@ -1,0 +1,281 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                 📤 SUBIR ARCHIVOS A GITHUB — PASO A PASO (SIN TERMINAL)       ║
+║                                                                               ║
+║                            GUÍA VISUAL Y DETALLADA                            ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FASE 1: PREPARAR LOS ARCHIVOS EN TU PC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PASO 1.1: Crear carpeta local
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ En tu PC (Windows, Mac o Linux):                                             │
+│                                                                              │
+│ 1. Abre Explorador de archivos / Finder                                     │
+│ 2. Navega a tu carpeta de Descargas (o donde guardes archivos)            │
+│ 3. Click derecho → Nueva carpeta                                           │
+│ 4. Nombre: autoradar-dashboard                                            │
+│    (sin espacios, guiones entre palabras)                                  │
+│                                                                              │
+│ Resultado: Tienes carpeta vacía "autoradar-dashboard"                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+PASO 1.2: Copiar los 13 archivos
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Copia estos 13 archivos desde /Descargas o /outputs a "autoradar-dashboard":
+│
+│   1. index.html
+│   2. car-tracker-supabase.html
+│   3. README.md
+│   4. QUICK_START.txt
+│   5. SETUP_GUIA.md
+│   6. DEPLOY_GUIA.md
+│   7. GITHUB_VERCEL_SETUP.md
+│   8. MANIFEST.txt
+│   9. RESUMEN_FINAL.txt
+│  10. autoradar-config.json
+│  11. package.json
+│  12. vercel.json
+│  13. .gitignore
+│
+│ Método 1 (Fácil): Selecciona todos → Ctrl+C (Cmd+C en Mac) → Pega en carpeta
+│ Método 2 (Arrastrar): Abre 2 ventanas, arrastra archivos de una a otra
+│
+│ Resultado: Carpeta "autoradar-dashboard" con 13 archivos
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Verificación: 
+  ✓ Carpeta "autoradar-dashboard" existe
+  ✓ Contiene 13 archivos
+  ✓ Los nombres están exactos (sin mayúsculas raras)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FASE 2: CREAR REPOSITORIO EN GITHUB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PASO 2.1: Ir a GitHub
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. Abre navegador (Chrome, Firefox, Safari, Edge)                          │
+│ 2. Ve a: https://github.com/new                                           │
+│                                                                              │
+│    Alternativa si no funciona el link:                                    │
+│    • Ve a https://github.com                                              │
+│    • Login con tu cuenta                                                   │
+│    • Click en "+" (arriba a la derecha)                                   │
+│    • Selecciona "New repository"                                          │
+│                                                                              │
+│ 3. Deberías ver un formulario en blanco con opciones                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+PASO 2.2: Completar formulario
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CAMPO 1: Repository name                                                    │
+│ ┌─ Escribe exactamente: autoradar-dashboard                               │
+│ │  (sin mayúsculas, con guiones)                                          │
+│ └─                                                                          │
+│                                                                              │
+│ CAMPO 2: Description (Opcional)                                             │
+│ ┌─ Puedes escribir:                                                        │
+│ │  AutoRadar — Dashboard de rastreo de precios de coches en tiempo real   │
+│ └─                                                                          │
+│                                                                              │
+│ CAMPO 3: Visibility                                                        │
+│ ┌─ ☑ PUBLIC (IMPORTANTE - Vercel necesita esto)                          │
+│ │  ☐ Private (NO - no marques esto)                                      │
+│ └─                                                                          │
+│                                                                              │
+│ CAMPO 4: Initialize this repository with                                   │
+│ ┌─ ☐ Add a README file (NO - ya lo tienes)                               │
+│ │  ☐ Add .gitignore (NO - ya lo tienes)                                  │
+│ │  ☐ Choose a license (NO - opcional)                                    │
+│ └─                                                                          │
+│                                                                              │
+│ BOTÓN: Click en "Create repository" (verde, abajo)                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Resultado después de crear:
+  • GitHub crea repo vacío
+  • Verás pantalla con instrucciones
+  • URL: https://github.com/TU_USUARIO/autoradar-dashboard
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FASE 3: SUBIR ARCHIVOS A GITHUB (OPCIÓN MÁS FÁCIL - SIN TERMINAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PASO 3.1: Ir a la sección "Upload files"
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ En la página de tu repo vacío:                                              │
+│                                                                              │
+│ Verás un botón verde "Add file" en la derecha                             │
+│ Click en "Add file" → Selecciona "Upload files"                           │
+│                                                                              │
+│ O simplemente click en "uploading an existing file"                        │
+│                                                                              │
+│ Resultado: Se abre zona para subir archivos                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+PASO 3.2: Seleccionar archivos
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Opción A (Arrastra y suelta - MÁS FÁCIL):                                 │
+│                                                                              │
+│ 1. Abre 2 ventanas del navegador/explorador                               │
+│    • Ventana 1: GitHub (la zona vacía para subir)                         │
+│    • Ventana 2: Tu carpeta "autoradar-dashboard"                         │
+│                                                                              │
+│ 2. Selecciona todos los 13 archivos en tu carpeta:                        │
+│    Ctrl+A (Cmd+A en Mac)                                                  │
+│                                                                              │
+│ 3. Arrastra los archivos a GitHub                                         │
+│    (desde ventana 2 a ventana 1)                                          │
+│                                                                              │
+│ 4. Espera a que cargue (verás barra de progreso)                         │
+│                                                                              │
+│                                                                              │
+│ Opción B (Click y seleccionar):                                           │
+│                                                                              │
+│ 1. Click en la zona de GitHub (dice "Drag files here")                   │
+│                                                                              │
+│ 2. Se abre explorador de archivos                                         │
+│                                                                              │
+│ 3. Navega a tu carpeta "autoradar-dashboard"                             │
+│                                                                              │
+│ 4. Selecciona todos (Ctrl+A)                                             │
+│                                                                              │
+│ 5. Click en "Open" o "Abrir"                                             │
+│                                                                              │
+│ 6. Espera a que carguen los 13 archivos                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+PASO 3.3: Hacer "commit" (guardar cambios en GitHub)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Una vez suben los archivos, verás formulario con:                          │
+│                                                                              │
+│ "Commit changes"                                                            │
+│                                                                              │
+│ Campo 1: Commit message (obligatorio)                                      │
+│ ┌─ Escribe: Initial commit - AutoRadar Dashboard v1.0                     │
+│ └─                                                                          │
+│                                                                              │
+│ Campo 2: Extended description (opcional)                                   │
+│ ┌─ Puedes dejar en blanco                                                 │
+│ └─                                                                          │
+│                                                                              │
+│ Opción de rama (debajo):                                                   │
+│ ┌─ "Commit directly to the main branch"                                   │
+│ │  ☑ Marca esta opción (es la principal)                                 │
+│ └─                                                                          │
+│                                                                              │
+│ BOTÓN: Click en "Commit changes" (verde)                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Resultado:
+  ✓ GitHub sube todos los archivos
+  ✓ Tienes primer "commit"
+  ✓ Repositorio está listo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FASE 4: VERIFICAR QUE FUNCIONÓ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PASO 4.1: Verificar en GitHub
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. Recarga la página (F5 o Ctrl+R)                                         │
+│                                                                              │
+│ 2. Deberías ver lista de archivos:                                         │
+│    □ index.html                                                            │
+│    □ car-tracker-supabase.html                                             │
+│    □ README.md                                                             │
+│    □ QUICK_START.txt                                                       │
+│    □ SETUP_GUIA.md                                                         │
+│    □ DEPLOY_GUIA.md                                                        │
+│    □ GITHUB_VERCEL_SETUP.md                                                │
+│    □ MANIFEST.txt                                                          │
+│    □ RESUMEN_FINAL.txt                                                     │
+│    □ autoradar-config.json                                                 │
+│    □ package.json                                                          │
+│    □ vercel.json                                                           │
+│    □ .gitignore                                                            │
+│                                                                              │
+│ 3. Debajo de cada archivo ves la hora/fecha de cuando lo subiste         │
+│                                                                              │
+│ 4. Ves un botón "Initial commit - AutoRadar Dashboard v1.0"               │
+│    (Tu mensaje de commit)                                                  │
+│                                                                              │
+│ Si ves TODO esto: ✅ ¡FUNCIONÓ!                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Tu URL final es:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ https://github.com/TU_USUARIO/autoradar-dashboard                          │
+│                                                                              │
+│ Ejemplo real:                                                              │
+│ https://github.com/juanperez/autoradar-dashboard                          │
+│ https://github.com/maria123/autoradar-dashboard                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TROUBLESHOOTING — SI ALGO SALE MAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ "Error: Could not create repository"
+   → Probablemente el nombre "autoradar-dashboard" ya existe
+   → Intenta: autoradar-dashboard-v2, autoradar-app, etc
+   → O borra el repo anterior y crea de nuevo
+
+❌ "Archivos no aparecen en GitHub"
+   → Espera 5 segundos y recarga la página (F5)
+   → Si persiste, intenta subir de nuevo desde "Add file" → "Upload files"
+
+❌ "No puedo seleccionar 13 archivos a la vez"
+   → Sube en 2 tandas:
+     • Primero los 7 principales (index.html, car-tracker, config, etc)
+     • Luego la documentación (.md, .txt)
+
+❌ ".gitignore no aparece"
+   → Algunos sistemas ocultan archivos que empiezan con punto
+   → Ve a GitHub → Settings → confirma que está ahí
+   → O súbelo nuevamente como "gitignore" (sin punto)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SIGUIENTE PASO: CONECTAR CON VERCEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Una vez tienes todo en GitHub:
+
+1. Ve a https://vercel.com
+2. Click "Sign Up" (elige GitHub)
+3. Autoriza Vercel a acceder a GitHub
+4. En Vercel → "New Project"
+5. Busca "autoradar-dashboard"
+6. Click "Import"
+7. Click "Deploy"
+8. Espera 30 segundos
+
+¡LISTO! Tendrás URL en vivo:
+  https://autoradar-dashboard.vercel.app
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHECKLIST FINAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Tengo 13 archivos en mi carpeta "autoradar-dashboard"
+✅ Fui a https://github.com/new
+✅ Nombre del repo: autoradar-dashboard
+✅ Visibilidad: Public
+✅ Sin README/gitignore iniciales
+✅ Creé el repositorio
+✅ Subí los 13 archivos
+✅ Hice commit con mensaje "Initial commit..."
+✅ Veo todos los archivos en GitHub
+✅ Mi URL es: https://github.com/TU_USUARIO/autoradar-dashboard
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║               ✅ SI COMPLETASTE TODO ESTO: ¡FELICIDADES!                     ║
+║                                                                               ║
+║            Tu repositorio en GitHub está listo para Vercel 🚀               ║
+║                                                                               ║
+║               ⏭️  SIGUIENTE: Conectar con Vercel (5 minutos)                ║
+║                                                                               ║
+╚════════════════════════════════════════════════════════════════════════════════╝
