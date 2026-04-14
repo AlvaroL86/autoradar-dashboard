@@ -1,0 +1,181 @@
+{
+  "name": "AutoRadar v3 — Supabase (SIN IF)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "trigger-auto",
+      "name": "⏱️ Cada 30 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "autoradar-sync",
+        "responseMode": "responseNode"
+      },
+      "id": "trigger-webhook",
+      "name": "🔘 Sync Manual",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [0, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "{\"ok\":true}"
+      },
+      "id": "webhook-response",
+      "name": "✅ Respuesta OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [220, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "const USER_AGENTS = ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) AppleWebKit/537.36'];\nfunction ua() { return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)]; }\nconst portales = [\n  { id: 'wallapop', nombre: 'Wallapop', tipo: 'json_api', url: 'https://api.wallapop.com/api/v3/general/search?source=quick_filters&keywords=coche&category_ids=100&order_by=newest&start=0&step=40', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'application/json' }, json_items_path: 'data.section.payload.items', json_map: { titulo: 'content.title', precio: 'content.price', km: 'content.km', year: 'content.year', lugar: 'content.location.city', id_externo: 'id', link_base: 'https://es.wallapop.com/item/' } },\n  { id: 'milanuncios', nombre: 'Milanuncios', tipo: 'json_api', url: 'https://www.milanuncios.com/api/v1/listing?cg=2800&ord=date&numPage=1&numItems=40', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'application/json' }, json_items_path: 'items', json_map: { titulo: 'title', precio: 'price', km: 'km', year: 'year', lugar: 'province', id_externo: 'id', link_base: 'https://www.milanuncios.com' } },\n  { id: 'coches_net', nombre: 'Coches.net', tipo: 'html', url: 'https://www.coches.net/segunda-mano/?pg=1&ord=date-desc', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'text/html' } },\n  { id: 'autoscout24', nombre: 'AutoScout24', tipo: 'html', url: 'https://www.autoscout24.es/lst?sort=age&desc=1&ustate=N%2CU&size=20&page=1&cy=E', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'text/html' } },\n  { id: 'autocasion', nombre: 'Autocasión', tipo: 'html', url: 'https://www.autocasion.com/coches-ocasion?ordenar=recientes', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'text/html' } },\n  { id: 'motor_es', nombre: 'Motor.es', tipo: 'html', url: 'https://www.motor.es/coches-segunda-mano/', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'text/html' } },\n  { id: 'flexicar', nombre: 'Flexicar', tipo: 'html', url: 'https://www.flexicar.es/coches-segunda-mano/', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'text/html' } },\n  { id: 'cochesdeocasion', nombre: 'CochesDeOcasion', tipo: 'html', url: 'https://www.cochesdeocasion.com/buscar/?orden=fecha_desc', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'text/html' } },\n  { id: 'km77', nombre: 'km77', tipo: 'html', url: 'https://www.km77.com/coches-segunda-mano', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'text/html' } },\n  { id: 'vibbo', nombre: 'Vibbo', tipo: 'html', url: 'https://www.vibbo.com/coches-de-segunda-mano?ord=dt', method: 'GET', headers: { 'User-Agent': ua(), 'Accept': 'text/html' } }\n];\nreturn portales.map(p => ({ json: p }));"
+      },
+      "id": "node-portales",
+      "name": "📋 Configuración",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "method": "={{ $json.method || 'GET' }}",
+        "options": {
+          "timeout": 20000,
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "={{ $json.tipo === 'json_api' ? 'json' : 'text' }}"
+            }
+          },
+          "headers": {
+            "parameters": [
+              { "name": "User-Agent", "value": "={{ $json.headers['User-Agent'] }}" },
+              { "name": "Accept", "value": "={{ $json.headers['Accept'] }}" }
+            ]
+          }
+        }
+      },
+      "id": "node-http",
+      "name": "🌐 HTTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const portal = $input.all()[0].json;\nconst respuesta = $input.all()[0].json.data || $input.all()[0].json;\nconst fechaSync = new Date().toISOString();\nconst resultados = [];\n\nif (portal.tipo === 'json_api') {\n  let items = [];\n  try {\n    const path = (portal.json_items_path || '').split('.');\n    let cursor = typeof respuesta === 'string' ? JSON.parse(respuesta) : respuesta;\n    for (const key of path) { cursor = cursor?.[key]; if (!cursor) break; }\n    items = Array.isArray(cursor) ? cursor : [];\n  } catch(e) { return []; }\n  \n  for (const item of items.slice(0, 50)) {\n    const get = (obj, path) => { if (!path) return ''; return path.split('.').reduce((o, k) => o?.[k], obj) ?? ''; };\n    const map = portal.json_map || {};\n    const titulo = get(item, map.titulo) || '';\n    const precio = parseFloat(String(get(item, map.precio) || 0).replace(/[^0-9.]/g,'')) || 0;\n    if (!titulo || precio === 0) continue;\n    \n    resultados.push({\n      json: {\n        portal_id: portal.id,\n        portal: portal.nombre,\n        titulo: titulo.substring(0, 250),\n        precio,\n        km: parseInt(get(item, map.km)) || 0,\n        year: String(get(item, map.year) || '').substring(0, 10),\n        lugar: String(get(item, map.lugar) || '').substring(0, 100),\n        link: (map.link_base || '') + String(get(item, map.id_externo) || ''),\n        id_unico: `${portal.id}_${get(item, map.id_externo)}`,\n        fecha_sync: fechaSync,\n        es_nuevo: true\n      }\n    });\n  }\n} else {\n  const html = typeof respuesta === 'string' ? respuesta : JSON.stringify(respuesta);\n  if (!html || html.length < 500) return [];\n  \n  const precios = [];\n  const precioRx = /(\\d{1,3}(?:\\.\\d{3})*(?:,\\d{2})?)\\s*(?:€|EUR)/g;\n  let m;\n  while ((m = precioRx.exec(html)) !== null) {\n    const v = parseFloat(m[1].replace(/\\./g,'').replace(',','.'));\n    if (v >= 500 && v <= 300000) precios.push(v);\n  }\n  \n  if (precios.length === 0) return [];\n  \n  for (let i = 0; i < Math.min(precios.length, 30); i++) {\n    resultados.push({\n      json: {\n        portal_id: portal.id,\n        portal: portal.nombre,\n        titulo: `${portal.nombre} anuncio #${i+1}`,\n        precio: precios[i],\n        km: 0,\n        year: '',\n        lugar: '',\n        link: portal.url,\n        id_unico: `${portal.id}_${precios[i]}_${i}`,\n        fecha_sync: fechaSync,\n        es_nuevo: true\n      }\n    });\n  }\n}\n\nreturn resultados;"
+      },
+      "id": "node-extract",
+      "name": "🔍 Extraer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO coches_anuncios (id_unico, portal_id, portal, titulo, precio, km, year, lugar, link, fecha_sync, es_nuevo) VALUES ('{{ $json.id_unico }}', '{{ $json.portal_id }}', '{{ $json.portal }}', '{{ $json.titulo.replace(/'/g, \"''\") }}', {{ $json.precio }}, {{ $json.km }}, '{{ $json.year }}', '{{ $json.lugar }}', '{{ $json.link }}', '{{ $json.fecha_sync }}', true) ON CONFLICT (id_unico) DO UPDATE SET fecha_sync = EXCLUDED.fecha_sync, es_nuevo = false;"
+      },
+      "id": "node-postgres",
+      "name": "🗄️ Supabase",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1180, 300],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_SUPABASE_CREDENTIAL",
+          "name": "Supabase AutoRadar"
+        }
+      },
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "⏱️ Cada 30 minutos": {
+      "main": [
+        [
+          {
+            "node": "📋 Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔘 Sync Manual": {
+      "main": [
+        [
+          {
+            "node": "✅ Respuesta OK",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📋 Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📋 Configuración": {
+      "main": [
+        [
+          {
+            "node": "🌐 HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🌐 HTTP": {
+      "main": [
+        [
+          {
+            "node": "🔍 Extraer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Extraer": {
+      "main": [
+        [
+          {
+            "node": "🗄️ Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "tags": [
+    {
+      "name": "autoradar"
+    }
+  ]
+}
