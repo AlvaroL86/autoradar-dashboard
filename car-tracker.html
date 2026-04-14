@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoRadar — Rastreador de Precios (Supabase Live)</title>
+    <title>AutoRadar — Rastreador de Precios Inteligente</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg: #0a0a0f;
@@ -321,6 +322,16 @@
             border-radius: 8px;
             margin: 1rem 0;
         }
+
+        .new-badge {
+            background: var(--accent);
+            color: #0a0a0f;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-left: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -332,7 +343,7 @@
         <div class="header-right">
             <div class="status-badge">
                 <div class="status-dot" id="statusDot"></div>
-                <span id="statusText">Conectando...</span>
+                <span id="statusText">Inicializando...</span>
             </div>
             <button class="sync-btn" id="syncBtn" onclick="reloadData()">
                 <span>⟳</span> Actualizar
@@ -363,14 +374,14 @@
                 <div class="stat-sub" id="statMinSub">—</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Última sync</div>
-                <div class="stat-value" id="lastSync" style="font-size: 1rem;">—</div>
+                <div class="stat-label">Última sincronización</div>
+                <div class="stat-value" id="lastSync" style="font-size: 0.9rem;">—</div>
                 <div class="stat-sub" id="syncInfo">—</div>
             </div>
         </div>
 
         <div class="controls">
-            <input type="text" class="search-box" id="searchBox" placeholder="Buscar marca, modelo, portal..." onkeyup="filterTable()">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Buscar marca, modelo, portal, provincia..." onkeyup="filterTable()">
             <select class="filter-select" id="portalFilter" onchange="filterTable()">
                 <option value="">Todos los portales</option>
             </select>
@@ -399,7 +410,7 @@
                 <tbody id="tableBody">
                     <tr>
                         <td colspan="8" style="text-align: center;">
-                            <div class="loading">📊 Cargando datos de Supabase...</div>
+                            <div class="loading">📊 Conectando a Supabase...</div>
                         </td>
                     </tr>
                 </tbody>
@@ -408,63 +419,73 @@
     </main>
 
     <script>
-        // Configuración Supabase
+        // ─────────────────────────────────────────────────
+        // CONFIGURACIÓN SUPABASE
+        // ─────────────────────────────────────────────────
         const SUPABASE_URL = 'https://tingcbepyaqskulrdgiw.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_WdJgGgLvt76CgX-vk7jV5w_YYYs3LlV';
+        const SUPABASE_ANON_KEY = 'sb_publishable_WdJgGgLvt76CgX-vk7jV5w_YYYs3LlV';
         
-        // Estado global
+        // Inicializar cliente Supabase
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // ─────────────────────────────────────────────────
+        // ESTADO GLOBAL
+        // ─────────────────────────────────────────────────
         let allData = [];
-        let currentFilter = '';
-        let currentPortal = '';
-        let currentSort = 'recent';
+        let lastUpdateTime = null;
+        let isLoading = false;
+        
+        // ─────────────────────────────────────────────────
+        // FUNCIONES PRINCIPALES
+        // ─────────────────────────────────────────────────
         
         /**
-         * Cargar datos desde Supabase
+         * Cargar datos desde Supabase usando cliente oficial
          */
         async function loadData() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            const tbody = document.getElementById('tableBody');
+            
             try {
-                const dot = document.getElementById('statusDot');
-                const text = document.getElementById('statusText');
-                const tbody = document.getElementById('tableBody');
-                
                 dot.classList.remove('connected', 'error');
-                text.textContent = 'Conectando...';
+                text.textContent = 'Conectando a Supabase...';
                 
-                // Fetch desde Supabase REST API
-                const response = await fetch(
-                    SUPABASE_URL + '/rest/v1/coches_anuncios?select=*&order=fecha_sync.desc&limit=500',
-                    {
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': 'Bearer ' + SUPABASE_KEY,
-                            'Content-Type': 'application/json'
-                        }
-                    }
-                );
+                // Consultar con Supabase Client
+                const { data, error, status } = await supabase
+                    .from('coches_anuncios')
+                    .select('*')
+                    .order('fecha_sync', { ascending: false })
+                    .limit(500);
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                if (error) {
+                    throw new Error(`${error.message} (HTTP ${status})`);
                 }
-                
-                const data = await response.json();
-                console.log('Datos recibidos:', data.length, 'registros');
                 
                 if (!data || data.length === 0) {
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="8" style="text-align: center; padding: 2rem;">
-                                <div class="success-box">✅ Conectado - Datos disponibles después de las 7:00 AM UTC</div>
+                                <div class="success-box">✅ Conectado — Los datos estarán disponibles después de las 7:00 AM UTC cuando el scraper ejecute.</div>
                             </td>
                         </tr>
                     `;
                     updateStats([]);
                     dot.classList.add('connected');
-                    text.textContent = 'En línea (sin datos)';
+                    text.textContent = 'En línea (sin datos aún)';
+                    isLoading = false;
                     return;
                 }
                 
-                // Guardar datos y renderizar
+                console.log(`✅ Datos cargados: ${data.length} registros`);
+                
                 allData = data;
+                lastUpdateTime = new Date();
+                
                 updatePortalFilter();
                 renderTable(data);
                 updateStats(data);
@@ -473,16 +494,21 @@
                 text.textContent = 'En línea';
                 
             } catch (error) {
-                console.error('Error cargando datos:', error);
-                document.getElementById('tableBody').innerHTML = `
+                console.error('❌ Error cargando datos:', error);
+                
+                tbody.innerHTML = `
                     <tr>
                         <td colspan="8" style="text-align: center; padding: 2rem;">
-                            <div class="error-box">❌ Error: ${error.message}</div>
+                            <div class="error-box">❌ Error de conexión: ${error.message}</div>
                         </td>
                     </tr>
                 `;
-                document.getElementById('statusDot').classList.add('error');
-                document.getElementById('statusText').textContent = 'Error';
+                
+                dot.classList.add('error');
+                text.textContent = 'Error de conexión';
+                
+            } finally {
+                isLoading = false;
             }
         }
         
@@ -491,37 +517,70 @@
          */
         function renderTable(coches) {
             const tbody = document.getElementById('tableBody');
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const portalFilter = document.getElementById('portalFilter').value;
+            const sortType = document.getElementById('sortSelect').value;
             
             if (!coches || coches.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="8" style="text-align: center; padding: 2rem;">
-                            <div class="success-box">ℹ️ No se encontraron registros con los filtros actuales</div>
+                            <div class="success-box">ℹ️ No se encontraron anuncios con los filtros seleccionados</div>
                         </td>
                     </tr>
                 `;
                 return;
             }
             
-            tbody.innerHTML = coches.slice(0, 500).map(c => {
+            // Filtrar
+            let filtered = coches.filter(c => {
+                const matchSearch = !searchTerm || 
+                    (c.titulo && c.titulo.toLowerCase().includes(searchTerm)) ||
+                    (c.portal && c.portal.toLowerCase().includes(searchTerm)) ||
+                    (c.lugar && c.lugar.toLowerCase().includes(searchTerm));
+                    
+                const matchPortal = !portalFilter || c.portal === portalFilter;
+                
+                return matchSearch && matchPortal;
+            });
+            
+            // Ordenar
+            if (sortType === 'price-asc') {
+                filtered.sort((a, b) => (a.precio || 0) - (b.precio || 0));
+            } else if (sortType === 'price-desc') {
+                filtered.sort((a, b) => (b.precio || 0) - (a.precio || 0));
+            } else if (sortType === 'km-asc') {
+                filtered.sort((a, b) => (a.km || 0) - (b.km || 0));
+            } else {
+                filtered.sort((a, b) => new Date(b.fecha_sync) - new Date(a.fecha_sync));
+            }
+            
+            // Renderizar
+            tbody.innerHTML = filtered.slice(0, 500).map(c => {
                 const fecha = new Date(c.fecha_sync);
-                const fechaFormato = fecha.toLocaleString('es-ES', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+                const horasAtras = Math.floor((Date.now() - fecha.getTime()) / (1000 * 60 * 60));
+                let tiempoText = 'Hoy';
+                
+                if (horasAtras > 24) {
+                    tiempoText = Math.floor(horasAtras / 24) + 'd';
+                } else if (horasAtras > 0) {
+                    tiempoText = horasAtras + 'h';
+                } else {
+                    tiempoText = 'Ahora';
+                }
+                
+                const isNew = c.es_nuevo ? `<span class="new-badge">NUEVO</span>` : '';
                 
                 return `
                     <tr>
-                        <td><strong>${c.titulo || 'N/A'}</strong></td>
-                        <td style="font-family: Space Mono, monospace;">${c.year || '—'}</td>
-                        <td style="font-family: Space Mono, monospace;">${c.km ? c.km.toLocaleString() + ' km' : '—'}</td>
+                        <td><strong>${c.titulo || 'N/A'}</strong>${isNew}</td>
+                        <td style="font-family: Space Mono, monospace; text-align: center;">${c.year || '—'}</td>
+                        <td style="font-family: Space Mono, monospace; text-align: right;">${c.km ? c.km.toLocaleString('es-ES') + ' km' : '—'}</td>
                         <td><span class="price-cell">€${Math.round(c.precio || 0).toLocaleString('es-ES')}</span></td>
-                        <td>${c.lugar || '—'}</td>
+                        <td style="font-size: 0.75rem;">${c.lugar || '—'}</td>
                         <td><span class="portal-pill">${c.portal || 'N/A'}</span></td>
-                        <td style="font-size: 0.75rem; color: var(--muted); font-family: Space Mono, monospace;">${fechaFormato}</td>
-                        <td><a href="${c.link || '#'}" target="_blank" class="link-btn">↗</a></td>
+                        <td style="font-size: 0.7rem; color: var(--muted); font-family: Space Mono, monospace;">${tiempoText}</td>
+                        <td><a href="${c.link || '#'}" target="_blank" class="link-btn" title="Ver en ${c.portal}">↗</a></td>
                     </tr>
                 `;
             }).join('');
@@ -542,6 +601,7 @@
             
             const total = coches.length;
             const precios = coches.filter(c => c.precio && c.precio > 0).map(c => c.precio);
+            const nuevos = coches.filter(c => c.es_nuevo).length;
             const promedio = precios.length > 0 ? precios.reduce((a, b) => a + b, 0) / precios.length : 0;
             const minimo = precios.length > 0 ? Math.min(...precios) : 0;
             const portales = new Set(coches.map(c => c.portal)).size;
@@ -555,54 +615,22 @@
                 minute: '2-digit'
             }) : '—';
             
-            document.getElementById('statTotal').textContent = total.toLocaleString();
+            document.getElementById('statTotal').textContent = total.toLocaleString('es-ES');
+            document.getElementById('statNew').textContent = `+${nuevos} nuevos hoy`;
             document.getElementById('statPortals').textContent = portales;
             document.getElementById('statAvg').textContent = Math.round(promedio).toLocaleString('es-ES');
             document.getElementById('statMin').textContent = '€' + minimo.toLocaleString('es-ES');
             document.getElementById('lastSync').textContent = lastSyncText;
             
             const cocheMasBarato = coches.find(c => c.precio === minimo);
-            document.getElementById('statMinSub').textContent = cocheMasBarato ? cocheMasBarato.titulo.substring(0, 40) : '—';
-        }
-        
-        /**
-         * Filtro de tabla (búsqueda + portal + ordenado)
-         */
-        function filterTable() {
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            const portalFilter = document.getElementById('portalFilter').value;
-            const sortType = document.getElementById('sortSelect').value;
-            
-            let filtered = allData.filter(c => {
-                const matchesSearch = !searchTerm || 
-                    (c.titulo && c.titulo.toLowerCase().includes(searchTerm)) ||
-                    (c.portal && c.portal.toLowerCase().includes(searchTerm)) ||
-                    (c.lugar && c.lugar.toLowerCase().includes(searchTerm));
-                
-                const matchesPortal = !portalFilter || c.portal === portalFilter;
-                
-                return matchesSearch && matchesPortal;
-            });
-            
-            // Ordenar
-            if (sortType === 'price-asc') {
-                filtered.sort((a, b) => (a.precio || 0) - (b.precio || 0));
-            } else if (sortType === 'price-desc') {
-                filtered.sort((a, b) => (b.precio || 0) - (a.precio || 0));
-            } else if (sortType === 'km-asc') {
-                filtered.sort((a, b) => (a.km || 0) - (b.km || 0));
-            } else {
-                filtered.sort((a, b) => new Date(b.fecha_sync) - new Date(a.fecha_sync));
-            }
-            
-            renderTable(filtered);
+            document.getElementById('statMinSub').textContent = cocheMasBarato ? cocheMasBarato.titulo.substring(0, 50) : '—';
         }
         
         /**
          * Actualizar dropdown de portales
          */
         function updatePortalFilter() {
-            const portales = [...new Set(allData.map(c => c.portal))].sort();
+            const portales = [...new Set(allData.map(c => c.portal))].filter(p => p).sort();
             const select = document.getElementById('portalFilter');
             const currentValue = select.value;
             
@@ -610,6 +638,13 @@
                 portales.map(p => `<option value="${p}">${p}</option>`).join('');
             
             select.value = currentValue;
+        }
+        
+        /**
+         * Filtro de tabla
+         */
+        function filterTable() {
+            renderTable(allData);
         }
         
         /**
@@ -626,9 +661,16 @@
          * Inicializar al cargar la página
          */
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 AutoRadar iniciando...');
+            console.log('📡 Supabase URL:', SUPABASE_URL);
+            
             loadData();
+            
             // Recargar cada 2 minutos
-            setInterval(loadData, 2 * 60 * 1000);
+            setInterval(() => {
+                console.log('🔄 Actualizando datos...');
+                loadData();
+            }, 2 * 60 * 1000);
         });
     </script>
 </body>
